@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+from graph.nodes import node
+from networkx import Graph
+import numpy as np
+
+__all__ = [ 'graph', 'nodes' ]
+
+
+# Define the graph and nodes
+graph = Graph(name = 'Grid {{ width }}x{{ height }}')
+
+# Generate a set of nodes from 0 .. width - 1 and 0 .. height - 1
+nodes = [{% for x in range(width) %}{% for y in range(height) %}
+    node({{ x }}, {{ y }}),{% endfor %}{% endfor %}
+]
+graph.add_nodes_from(nodes)
+
+# Generate a set of edges connecting each node in the list on an inverted L pattern
+graph.add_edges_from([{% for x in range(width) %}{% for y in range(height) %}
+    # For node ({{ x }}, {{ y }}){% if (x + 1) < width %}
+    (nodes[{{ x * width + y }}], nodes[{{ (x + 1) * width + y }}], { 'time': np.random.poisson(10.0) }),{% endif %}{% if (y + 1) < height %}
+    (nodes[{{ x * width + y }}], nodes[{{ x * width + (y + 1) }}], { 'time': np.random.poisson(10.0) }),{% endif %}{% endfor %}{% endfor %}
+])
